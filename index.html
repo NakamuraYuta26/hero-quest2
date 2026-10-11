@@ -1,0 +1,3226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HERO-QUEST2</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    margin:0;
+    padding:10px;
+    background:#202020;
+    color:#fff;
+    font-family:monospace;
+    text-align:center;
+    user-select:none;
+}
+
+#game{
+    width:min(100%,560px);
+    margin:0 auto;
+}
+
+#screen{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    max-height:560px;
+    border:8px solid #777;
+    background-image:url("black.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    overflow:hidden;
+    image-rendering:pixelated;
+}
+
+canvas{
+    width:100%;
+    height:100%;
+    display:block;
+    image-rendering:pixelated;
+}
+
+#message{
+    position:absolute;
+    left:5%;
+    right:5%;
+    bottom:5%;
+    min-height:80px;
+    padding:12px;
+    background:rgba(0,0,0,.88);
+    border:3px solid #fff;
+    color:#fff;
+    text-align:left;
+    font-size:16px;
+    line-height:1.6;
+    z-index:5;
+}
+
+#message.hidden{
+    display:none;
+}
+
+#messageText{
+    white-space:pre-wrap;
+}
+
+#cursor{
+    display:inline-block;
+    margin-right:8px;
+}
+
+#hardware{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    align-items:center;
+}
+
+#dpad{
+    position:relative;
+    width:150px;
+    height:150px;
+    margin:auto;
+}
+
+.pad{
+    position:absolute;
+    width:50px;
+    height:50px;
+    padding:0;
+    margin:0;
+    max-width:none;
+    border:3px solid #111;
+    border-radius:5px;
+    background:#555;
+    color:#fff;
+    font-size:24px;
+    font-weight:bold;
+}
+
+#up{
+    left:50px;
+    top:0;
+}
+#down{
+    left:50px;
+    bottom:0;
+}
+#left{
+    left:0;
+    top:50px;
+}
+#right{
+    right:0;
+    top:50px;
+}
+
+#center{
+    position:absolute;
+    left:50px;
+    top:50px;
+    width:50px;
+    height:50px;
+    background:#333;
+}
+
+#ab{
+    position:relative;
+    width:150px;
+    height:150px;
+    margin:auto;
+}
+
+.action{
+    position:absolute;
+    width:50px;
+    height:50px;
+    padding:0;
+    border-radius:50%;
+    border:3px solid #111;
+    background:#777;
+    color:#fff;
+    font-size:18px;
+    font-weight:bold;
+}
+
+/* ニンテンドーDS風のABXY配置 */
+
+#buttonX{
+    left:50px;
+    top:0;
+}
+
+#buttonY{
+    left:0;
+    top:50px;
+}
+
+#buttonA{
+    right:0;
+    top:50px;
+}
+
+#buttonB{
+    left:50px;
+    bottom:0;
+}
+button{
+    touch-action:manipulation;
+}
+
+button:active{
+    transform:scale(.94);
+    background:#999;
+}
+
+#utilityWindow{
+    position:absolute;
+    left:7%;
+    right:7%;
+    top:12%;
+    bottom:12%;
+    padding:14px;
+    background:rgba(0,0,0,.94);
+    border:4px solid #fff;
+    color:#fff;
+    text-align:left;
+    z-index:10;
+    font-size:14px;
+    line-height:1.65;
+}
+
+#utilityWindow.hidden{
+    display:none;
+}
+
+#utilityTitle{
+    padding-bottom:8px;
+    margin-bottom:8px;
+    border-bottom:2px solid #fff;
+    text-align:center;
+    font-size:17px;
+    font-weight:bold;
+}
+
+#utilityText{
+    white-space:pre-wrap;
+}
+
+#utilityHint{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:8px;
+    text-align:center;
+    font-size:10px;
+}
+#debug{
+    margin-top:8px;
+    font-size:11px;
+    color:#aaa;
+}
+
+@media(max-width:420px){
+    body{
+        padding:5px;
+    }
+
+    #screen{
+        border-width:5px;
+    }
+
+    #message{
+        min-height:70px;
+        font-size:13px;
+        padding:8px;
+    }
+
+    #hardware{
+        gap:8px;
+    }
+
+    #dpad{
+        width:125px;
+        height:125px;
+    }
+
+    .pad{
+        width:42px;
+        height:42px;
+        font-size:19px;
+    }
+
+    #up{
+        left:41px;
+    }
+
+    #down{
+        left:41px;
+    }
+
+    #left{
+        top:41px;
+    }
+
+    #right{
+        top:41px;
+    }
+
+    #center{
+        left:41px;
+        top:41px;
+        width:42px;
+        height:42px;
+    }
+    #utilityWindow{
+        left:5%;
+        right:5%;
+        top:8%;
+        bottom:8%;
+        padding:10px;
+        font-size:11px;
+    }
+
+    #utilityTitle{
+        font-size:14px;
+    }
+
+#ab{
+    width:125px;
+    height:125px;
+}
+
+.action{
+    width:42px;
+    height:42px;
+    font-size:15px;
+}
+
+#buttonX{
+    left:41px;
+    top:0;
+}
+
+#buttonY{
+    left:0;
+    top:41px;
+}
+
+#buttonA{
+    right:0;
+    top:41px;
+}
+
+#buttonB{
+    left:41px;
+    bottom:0;
+}}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="screen">
+        <canvas id="canvas" width="320" height="288"></canvas>
+
+        <div id="message" class="hidden">
+            <span id="cursor">▶</span><span id="messageText"></span>
+        </div>
+        <div id="utilityWindow" class="hidden">
+
+            <div id="utilityTitle"></div>
+
+            <div id="utilityText"></div>
+
+            <div id="utilityHint">
+                X / Y：閉じる
+            </div>
+
+        </div>
+    </div>
+
+    <div id="hardware">
+
+        <div id="dpad">
+            <button class="pad" id="up">▲</button>
+            <button class="pad" id="left">◀</button>
+            <div id="center"></div>
+            <button class="pad" id="right">▶</button>
+            <button class="pad" id="down">▼</button>
+        </div>
+
+        <div id="ab">
+
+            <button class="action" id="buttonX">X</button>
+
+            <button class="action" id="buttonY">Y</button>
+
+            <button class="action" id="buttonA">A</button>
+
+            <button class="action" id="buttonB">B</button>
+
+        </div>
+
+    </div>
+
+    <div id="debug"></div>
+
+</div>
+
+<script>
+// ============================================================
+// HERO-QUEST2
+// データ・基本クラス
+// ============================================================
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const messageBox = document.getElementById("message");
+const messageText = document.getElementById("messageText");
+const debug = document.getElementById("debug");
+
+const utilityWindow =
+    document.getElementById("utilityWindow");
+
+const utilityTitle =
+    document.getElementById("utilityTitle");
+
+const utilityText =
+    document.getElementById("utilityText");
+
+ctx.imageSmoothingEnabled = false;
+
+
+// ------------------------------------------------------------
+// 画像管理
+// ------------------------------------------------------------
+
+const Images = {};
+
+const imageFiles = [
+    "black.jpg",
+    "bg_natural_sougen.jpg",
+    "bg_natural_mori.jpg",
+    "light green.jpg",
+    "green.jpg",
+    "castle.png",
+    "doukutsu.png",
+    "building_europe_kojou.png",
+    "syounyudou.png",
+    "halloween_background_purple.png",
+    "bg_hell_jigoku.jpg",
+
+    "fantasy_game_character_slime.png",
+    "fantasy_goblin.png",
+    "fantasy_zombie_man.png",
+    "mahoutsukai_necromancer.png",
+    "fantasy_dullahan.png",
+    "fantasy_dragon.png",
+    "fantasy_maou_devil.png",
+
+    "royal_king.png",
+    "knight.png",
+    "yuusya_game.png"
+];
+
+imageFiles.forEach(src=>{
+    const img = new Image();
+    img.src = src;
+    Images[src] = img;
+});
+
+
+// ------------------------------------------------------------
+// 汎用関数
+// ------------------------------------------------------------
+
+function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function clamp(v,min,max){
+    return Math.max(min,Math.min(max,v));
+}
+
+
+// ------------------------------------------------------------
+// 勇者
+// ------------------------------------------------------------
+
+class Hero{
+
+    constructor(){
+
+        this.level = 1;
+
+        this.maxHP = 100;
+        this.hp = 100;
+
+        this.attack = 20;
+        this.defense = 10;
+        this.speed = 10;
+        this.magic = 15;
+
+        this.exp = 0;
+
+        // 次のレベルに必要な累計経験値
+        this.nextExp = 20;
+
+        this.poison = 0;
+        this.stun = 0;
+        this.guard = false;
+    }
+
+    addExp(value){
+
+        this.exp += value;
+
+        // レベル5が上限
+        while(
+            this.level < 5 &&
+            this.exp >= this.nextExp
+        ){
+
+            this.levelUp();
+        }
+    }
+
+    levelUp(){
+
+        if(this.level>=5){
+
+            this.level=5;
+
+            return;
+        }
+
+        this.level++;
+
+        this.maxHP += 25;
+        this.hp = this.maxHP;
+
+        this.attack += 5;
+        this.defense += 4;
+        this.speed += 3;
+        this.magic += 5;
+
+        // 累計経験値によるレベルアップ条件
+        if(this.level===2){
+
+            this.nextExp=40;
+
+        }else if(this.level===3){
+
+            this.nextExp=80;
+
+        }else if(this.level===4){
+
+            this.nextExp=140;
+
+        }else{
+
+            this.nextExp=999999;
+        }
+    }
+
+    healFull(){
+
+        this.hp = this.maxHP;
+        this.poison = 0;
+        this.stun = 0;
+        this.guard = false;
+    }
+
+    reset(){
+
+        Object.assign(this,new Hero());
+    }
+}
+
+// ------------------------------------------------------------
+// モンスター
+// ------------------------------------------------------------
+
+class Enemy{
+
+    constructor(data){
+
+        this.name = data.name;
+
+        this.maxHP = data.hp;
+        this.hp = data.hp;
+
+        this.attack = data.attack;
+        this.defense = data.defense;
+        this.speed = data.speed;
+        this.magic = data.magic;
+
+        this.exp = data.exp;
+
+        this.image = data.image;
+
+        this.pattern = data.pattern || [];
+        this.patternIndex = 0;
+
+        this.charge = false;
+        this.cast = false;
+
+        this.x = data.x || 0;
+        this.y = data.y || 0;
+
+        this.alive = true;
+    }
+
+    nextAction(){
+
+        if(this.pattern.length===0){
+            return "攻撃";
+        }
+
+        const action =
+            this.pattern[this.patternIndex];
+
+        this.patternIndex =
+            (this.patternIndex+1) %
+            this.pattern.length;
+
+        return action;
+    }
+}
+
+
+// ------------------------------------------------------------
+// モンスター定義
+// ------------------------------------------------------------
+
+const EnemyData = {
+
+    slime:{
+        name:"スライム",
+        hp:30,
+        attack:10,
+        defense:4,
+        speed:7,
+        magic:5,
+        exp:10,
+        image:"fantasy_game_character_slime.png",
+        pattern:["攻撃"]
+    },
+
+    goblin:{
+        name:"ゴブリン",
+        hp:40,
+        attack:13,
+        defense:6,
+        speed:9,
+        magic:6,
+        exp:15,
+        image:"fantasy_goblin.png",
+        pattern:["攻撃","攻撃","待機"]
+    },
+
+    zombie:{
+        name:"ゾンビ",
+        hp:45,
+        attack:12,
+        defense:7,
+        speed:5,
+        magic:5,
+        exp:20,
+        image:"fantasy_zombie_man.png",
+        pattern:["攻撃","毒","待機","攻撃"]
+    },
+
+    // 推奨レベル3
+    mage:{
+        name:"洞窟の魔術師",
+        hp:70,
+        attack:15,
+        defense:8,
+        speed:12,
+        magic:20,
+        exp:40,
+        image:"mahoutsukai_necromancer.png",
+        pattern:["攻撃","詠唱","ファイア","回復","攻撃"]
+    },
+
+    // 推奨レベル4
+    dullahan:{
+        name:"デュラハン",
+        hp:90,
+        attack:20,
+        defense:11,
+        speed:12,
+        magic:10,
+        exp:35,
+        image:"fantasy_dullahan.png",
+        pattern:["攻撃","チャージ","強攻撃","スタン"]
+    },
+
+    // 推奨レベル4～5
+    dragon:{
+        name:"ドラゴン",
+        hp:120,
+        attack:24,
+        defense:16,
+        speed:13,
+        magic:20,
+        exp:60,
+        image:"fantasy_dragon.png",
+        pattern:["強攻撃","毒","チャージ","ブレス","強攻撃"]
+    },
+
+    // 推奨レベル5
+    maou:{
+        name:"魔王",
+        hp:180,
+        attack:27,
+        defense:17,
+        speed:14,
+        magic:27,
+        exp:0,
+        image:"fantasy_maou_devil.png",
+        pattern:[
+            "強攻撃",
+            "詠唱",
+            "ファイア",
+            "回復",
+            "強攻撃",
+            "詠唱",
+            "ファイア",
+            "詠唱",
+            "スタン"
+        ]
+    }
+};
+
+// ------------------------------------------------------------
+// 敵生成
+// ------------------------------------------------------------
+
+function createEnemy(type,x=0,y=0){
+
+    const data = EnemyData[type];
+
+    return new Enemy({
+        ...data,
+        x:x,
+        y:y
+    });
+}
+// ============================================================
+// GAME
+// ============================================================
+
+class Game{
+
+    constructor(){
+
+        this.state = "title";
+
+        this.hero = new Hero();
+
+        this.enemies = [];
+
+        this.battleBackground = "black.jpg";
+
+        this.menuIndex = 0;
+
+        // 戦闘コマンドカーソル
+        this.battleRow = 0;
+        this.battleCol = 0;
+
+        // 戦闘開始前のフィールド位置
+        this.battleReturnX = 1;
+        this.battleReturnY = 2;
+
+        this.fieldX = 1;
+        this.fieldY = 2;
+
+        this.messageActive = false;
+        this.messageCallback = null;
+
+        // X/Yボタン用ウィンドウ
+        this.utilityWindowType = null;
+
+        this.story = {
+            slimeGoblinClear:false,
+            mageClear:false,
+            barrierOpen:false,
+            gameClear:false
+        };
+
+        this.fieldMap = [
+            ["grass","grass","forest","forest","forest","grass","grass","grass"],
+            ["grass","castle","forest","forest","forest","grass","cave","grass"],
+            ["grass","grass","grass","forest","forest","grass","grass","grass"],
+            ["grass","grass","forest","forest","forest","forest","grass","grass"],
+            ["grass","grass","grass","grass","grass","grass","grass","grass"],
+            ["forest","forest","grass","grass","forest","forest","forest","forest"],
+            ["grass","grass","grass","grass","grass","grass","forest","forest"],
+            ["grass","grass","grass","grass","grass","grass","forest","castle"]
+        ];
+
+        this.loop();
+
+        this.showTitle();
+    }
+
+
+    // --------------------------------------------------------
+    // メインループ
+    // --------------------------------------------------------
+
+    loop(){
+
+        requestAnimationFrame(()=>this.loop());
+
+        this.draw();
+
+        debug.textContent =
+            "STATE:"+this.state+
+            "  LV:"+this.hero.level+
+            "  HP:"+this.hero.hp+"/"+this.hero.maxHP;
+    }
+
+
+    // --------------------------------------------------------
+    // 描画
+    // --------------------------------------------------------
+
+    draw(){
+
+        ctx.clearRect(0,0,320,288);
+
+        if(this.state==="title"){
+            this.drawBackground("bg_natural_sougen.jpg");
+            this.drawTitle();
+            return;
+        }
+
+        if(this.state==="opening"){
+
+            this.drawBackground("fantasy_maou_devil.png");
+
+            return;
+        }
+
+        if(this.state==="town"){
+
+            this.drawBackground("castle.png");
+
+            this.drawCharacters(
+                "royal_king.png",
+                "knight.png"
+            );
+
+            return;
+        }
+
+        if(this.state==="cave"){
+            this.drawBackground("syounyudou.png");
+            return;
+        }
+
+        if(this.state==="castle"){
+            this.drawBackground("halloween_background_purple.png");
+            return;
+        }
+
+        if(this.state==="finalBattle"){
+            this.drawBackground("bg_hell_jigoku.jpg");
+            this.drawBattle();
+            return;
+        }
+
+        if(this.state==="battle"){
+            this.drawBattle();
+            return;
+        }
+
+        if(this.state==="ending"){
+            this.drawBackground("castle.png");
+            return;
+        }
+
+        if(this.state==="credit"){
+            this.drawBackground("bg_natural_sougen.jpg");
+            this.drawCredit();
+            return;
+        }
+
+        if(this.state==="field"){
+            this.drawField();
+        }
+    }
+
+
+    drawBackground(file){
+
+        const img = Images[file];
+
+        if(img && img.complete && img.naturalWidth){
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                320,
+                288
+            );
+
+        }else{
+
+            const black=Images["black.jpg"];
+
+            if(
+                black &&
+                black.complete &&
+                black.naturalWidth
+            ){
+
+                ctx.drawImage(
+                    black,
+                    0,
+                    0,
+                    320,
+                    288
+                );
+
+            }else{
+
+                ctx.fillStyle="#000";
+                ctx.fillRect(
+                    0,
+                    0,
+                    320,
+                    288
+                );
+            }
+        }
+    }
+
+    // --------------------------------------------------------
+    // 王様・騎士描画
+    // --------------------------------------------------------
+
+    drawCharacters(kingFile,knightFile){
+
+        const king=Images[kingFile];
+        const knight=Images[knightFile];
+
+        if(king &&
+           king.complete &&
+           king.naturalWidth){
+
+            ctx.drawImage(
+                king,
+                35,
+                45,
+                95,
+                115
+            );
+        }
+
+        if(knight &&
+           knight.complete &&
+           knight.naturalWidth){
+
+            ctx.drawImage(
+                knight,
+                190,
+                45,
+                95,
+                115
+            );
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // タイトル
+    // --------------------------------------------------------
+
+    drawTitle(){
+
+        ctx.fillStyle="rgba(0,0,0,.45)";
+        ctx.fillRect(20,35,280,210);
+
+        ctx.fillStyle="#fff";
+        ctx.textAlign="center";
+
+        ctx.font="bold 28px monospace";
+        ctx.fillText("HERO-QUEST2",160,85);
+
+        ctx.font="16px monospace";
+
+        const items=[
+            "ゲームスタート",
+            "クレジット"
+        ];
+
+        items.forEach((text,i)=>{
+
+            const y=145+i*35;
+
+            if(this.menuIndex===i){
+                ctx.fillText("▶ "+text,160,y);
+            }else{
+                ctx.fillText("　"+text,160,y);
+            }
+        });
+
+        ctx.font="11px monospace";
+        ctx.fillText("A：決定　B：戻る",160,220);
+
+        ctx.textAlign="left";
+    }
+
+
+    // --------------------------------------------------------
+    // フィールド描画
+    // --------------------------------------------------------
+
+    drawField(){
+
+        for(let y=0;y<this.fieldMap.length;y++){
+
+            for(let x=0;x<this.fieldMap[y].length;x++){
+
+                const tile=this.fieldMap[y][x];
+
+                let file="light green.jpg";
+
+                if(tile==="forest"){
+                    file="green.jpg";
+                }
+
+                if(tile==="castle"){
+
+                    if(x===7 && y===7){
+
+                        file="building_europe_kojou.png";
+
+                    }else{
+
+                        file="castle.png";
+                    }
+                }
+
+                if(tile==="cave"){
+                    file="doukutsu.png";
+                }
+
+                const img=Images[file];
+
+                const px=x*40;
+                const py=y*32;
+
+                if(img && img.complete && img.naturalWidth){
+                    ctx.drawImage(img,px,py,40,32);
+                }else{
+                    ctx.fillStyle="#7aa000";
+                    ctx.fillRect(px,py,40,32);
+                }
+
+                // 魔王城
+                if(x===7 && y===7){
+
+                    if(!this.story.barrierOpen){
+
+                        ctx.fillStyle="rgba(80,80,80,.75)";
+                        ctx.fillRect(px,py,40,32);
+
+                    }
+                }
+            }
+        }
+
+        // 勇者
+        const hx=this.fieldX*40+20;
+        const hy=this.fieldY*32+16;
+
+        ctx.fillStyle="#fff";
+        ctx.fillRect(hx-6,hy-10,12,15);
+
+        ctx.fillStyle="#000";
+        ctx.fillRect(hx-5,hy-15,10,5);
+
+        // ステータス
+        ctx.fillStyle="rgba(0,0,0,.75)";
+        ctx.fillRect(0,0,320,28);
+
+        ctx.fillStyle="#fff";
+        ctx.font="11px monospace";
+
+        ctx.fillText(
+            "LV "+this.hero.level+
+            " HP "+this.hero.hp+"/"+this.hero.maxHP+
+            " EXP "+this.hero.exp,
+            5,18
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // タイトル画面
+    // --------------------------------------------------------
+
+    showTitle(){
+
+        this.state="title";
+        this.menuIndex=0;
+
+        this.hideMessage();
+
+        this.closeUtilityWindow();
+    }
+
+
+    // --------------------------------------------------------
+    // オープニング
+    // --------------------------------------------------------
+
+    startGame(){
+
+        this.hero=new Hero();
+
+        this.story={
+            caveZombieClear:false,
+            mageClear:false,
+            barrierOpen:false,
+            gameClear:false
+        };
+
+        this.showOpening();
+    }
+
+
+    showOpening(){
+
+        this.state="opening";
+
+        this.showMessage(
+            "魔王が世界を侵略している！\n"+
+            "勇者よ、世界を救え！",
+            ()=>{
+                this.showTown();
+            }
+        );
+    }
+
+    // --------------------------------------------------------
+    // 王城
+    // --------------------------------------------------------
+
+    showTown(){
+
+        this.state="town";
+
+        this.showMessage(
+            "王様「勇者よ、世界を救ってくれ！」\n\n"+
+            "騎士「魔王城の結界を解くには、\n"+
+            "洞窟の魔術師を倒す必要があります！」",
+            ()=>{
+                this.startField();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // フィールド開始
+    // --------------------------------------------------------
+
+    startField(resetPosition=true){
+
+        this.state="field";
+
+        // 最初にフィールドへ入る時だけ初期位置へ戻す
+        if(resetPosition){
+
+            this.fieldX=1;
+            this.fieldY=2;
+        }
+
+        this.hideMessage();
+    }
+    // --------------------------------------------------------
+    // フィールド移動
+    // --------------------------------------------------------
+
+    move(dx,dy){
+
+        if(this.state!=="field") return;
+
+        const nx=this.fieldX+dx;
+        const ny=this.fieldY+dy;
+
+        if(ny<0 ||
+           ny>=this.fieldMap.length ||
+           nx<0 ||
+           nx>=this.fieldMap[0].length){
+            return;
+        }
+
+        const tile=this.fieldMap[ny][nx];
+
+        // 魔王城の結界
+        if(nx===7 && ny===7 &&
+           !this.story.barrierOpen){
+
+            this.showMessage(
+                "魔王城は結界に閉ざされている！"
+            );
+
+            return;
+        }
+
+        this.fieldX=nx;
+        this.fieldY=ny;
+
+        // 城
+        if(tile==="castle"){
+
+            // 右下の城を魔王城として扱う
+            if(nx===7 && ny===7){
+
+                this.enterDemonCastle();
+
+            }else{
+
+                this.enterTown();
+            }
+
+            return;
+        }
+
+        // 洞窟
+        if(tile==="cave"){
+
+            this.enterCave();
+
+            return;
+        }
+
+        // エンカウント
+        if(tile==="grass"){
+
+            if(Math.random()<1/5){
+
+                this.startRandomBattleA();
+
+                return;
+            }
+        }
+
+        if(tile==="forest"){
+
+            if(Math.random()<1/3){
+
+                this.startRandomBattleB();
+
+                return;
+            }
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // 城
+    // --------------------------------------------------------
+
+    enterTown(){
+
+        this.state="town";
+
+        if(this.story.mageClear){
+
+            this.showMessage(
+                "騎士「勇者様、どうか世界をお救い下さい！」",
+                ()=>{
+                    this.startField();
+                }
+            );
+
+        }else{
+
+            this.showMessage(
+                "王様「勇者よ、世界を救ってくれ！」\n\n"+
+                "騎士「魔王城の結界を解くには、\n"+
+                "洞窟の魔術師を倒す必要があります！」",
+                ()=>{
+                    this.startField();
+                }
+            );
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // 洞窟
+    // --------------------------------------------------------
+
+    enterCave(){
+
+        this.state="cave";
+
+        // 魔術師をすでに倒している場合
+        if(this.story.mageClear){
+
+            this.showMessage(
+                "洞窟にはもう敵の気配がない。",
+                ()=>{
+                    this.startField(false);
+                }
+            );
+
+            return;
+        }
+
+        // ゾンビ2体をすでに倒している場合
+        if(this.story.caveZombieClear){
+
+            this.showMessage(
+                "洞窟の奥へ進んだ……。",
+                ()=>{
+                    this.startMageBattle();
+                }
+            );
+
+            return;
+        }
+
+        // 初めて洞窟に入った場合
+        this.showMessage(
+            "洞窟へ入った……。",
+            ()=>{
+                this.startCaveBattle();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 魔王城
+    // --------------------------------------------------------
+
+    enterDemonCastle(){
+
+        this.state="castle";
+
+        this.showMessage(
+            "魔王城へ突入した！",
+            ()=>{
+                this.startCastleBattle();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 草原エンカウントA
+    // --------------------------------------------------------
+
+    startRandomBattleA(){
+
+        this.startBattle(
+            [
+                createEnemy("slime",80,90)
+            ],
+            "battle",
+            "bg_natural_sougen.jpg"
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 森林エンカウントB
+    // --------------------------------------------------------
+
+    startRandomBattleB(){
+
+        this.startBattle(
+            [
+                createEnemy("goblin",60,80),
+                createEnemy("goblin",180,80)
+            ],
+            "battle",
+            "bg_natural_mori.jpg"
+        );
+    }
+
+    // --------------------------------------------------------
+    // 洞窟エンカウントA
+    // --------------------------------------------------------
+
+    startCaveBattle(){
+
+        this.startBattle(
+            [
+                createEnemy("zombie",60,80),
+                createEnemy("zombie",180,80)
+            ],
+            "battle",
+            "syounyudou.png"
+        );
+    }
+
+    // --------------------------------------------------------
+    // 洞窟エンカウントB
+    // --------------------------------------------------------
+
+    startMageBattle(){
+
+        this.startBattle(
+            [
+                createEnemy("mage",120,80)
+            ],
+            "battle",
+            "syounyudou.png"
+        );
+    }
+
+    // --------------------------------------------------------
+    // 魔王城エンカウントC
+    // --------------------------------------------------------
+
+    startCastleBattle(){
+
+        this.startBattle(
+            [
+                createEnemy("dullahan",120,80)
+            ],
+            "battle",
+            "halloween_background_purple.png"
+        );
+    }
+
+    // --------------------------------------------------------
+    // 魔王城エンカウントD
+    // --------------------------------------------------------
+
+    startDragonBattle(){
+
+        this.startBattle(
+            [
+                createEnemy("dragon",120,70)
+            ],
+            "battle",
+            "bg_hell_jigoku.jpg"
+        );
+    }
+
+    // --------------------------------------------------------
+    // ラストバトル
+    // --------------------------------------------------------
+
+    startFinalBattle(){
+
+        this.startBattle(
+            [
+                createEnemy("maou",120,60)
+            ],
+            "finalBattle",
+            "bg_hell_jigoku.jpg"
+        );
+    }
+
+    // --------------------------------------------------------
+    // 戦闘準備
+    // --------------------------------------------------------
+
+    startBattle(
+        enemies,
+        state="battle",
+        background=null
+    ){
+
+        // 戦闘開始前のフィールド位置を保存
+        this.battleReturnX=this.fieldX;
+        this.battleReturnY=this.fieldY;
+
+
+        // 戦闘背景を設定
+        if(background){
+
+            this.battleBackground=background;
+        }
+
+
+        this.state=state;
+
+        this.enemies=enemies;
+
+
+        // 戦闘コマンドカーソルを初期化
+        this.battleRow=0;
+        this.battleCol=0;
+
+        this.menuIndex=0;
+
+
+        this.hideMessage();
+
+        this.battleMenu();
+    }
+
+
+    // --------------------------------------------------------
+    // 戦闘描画
+    // --------------------------------------------------------
+
+    drawBattle(){
+
+        // ----------------------------------------------------
+        // 背景
+        // ----------------------------------------------------
+
+        this.drawBackground(
+            this.battleBackground
+        );
+
+
+        // ----------------------------------------------------
+        // 敵
+        // ----------------------------------------------------
+
+        this.enemies.forEach((enemy,i)=>{
+
+            if(enemy.hp<=0) return;
+
+            const img=Images[enemy.image];
+
+            if(img &&
+               img.complete &&
+               img.naturalWidth){
+
+                ctx.drawImage(
+                    img,
+                    enemy.x,
+                    enemy.y,
+                    70,
+                    70
+                );
+
+            }else{
+
+                ctx.fillStyle="#fff";
+
+                ctx.fillRect(
+                    enemy.x,
+                    enemy.y,
+                    60,
+                    60
+                );
+            }
+
+            ctx.fillStyle="#fff";
+            ctx.font="10px monospace";
+
+            ctx.fillText(
+                enemy.name,
+                enemy.x,
+                enemy.y-12
+            );
+
+            ctx.fillText(
+                "HP:"+enemy.hp+"/"+enemy.maxHP,
+                enemy.x,
+                enemy.y-2
+            );
+        });
+
+
+        // ----------------------------------------------------
+        // 勇者
+        // ----------------------------------------------------
+
+        const heroImg=Images["yuusya_game.png"];
+
+        if(heroImg &&
+           heroImg.complete &&
+           heroImg.naturalWidth){
+
+            ctx.drawImage(
+                heroImg,
+                225,
+                145,
+                70,
+                70
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // ステータスウィンドウ
+        // ----------------------------------------------------
+
+        ctx.fillStyle="rgba(0,0,0,.80)";
+        ctx.fillRect(
+            5,
+            220,
+            150,
+            60
+        );
+
+        ctx.strokeStyle="#fff";
+        ctx.strokeRect(
+            5,
+            220,
+            150,
+            60
+        );
+
+        ctx.fillStyle="#fff";
+        ctx.font="10px monospace";
+
+        ctx.fillText(
+            "勇者",
+            12,
+            235
+        );
+
+        ctx.fillText(
+            "LV "+this.hero.level,
+            12,
+            249
+        );
+
+        ctx.fillText(
+            "HP "+this.hero.hp+
+            "/"+this.hero.maxHP,
+            12,
+            263
+        );
+
+        ctx.fillText(
+            "EXP "+this.hero.exp,
+            12,
+            277
+        );
+
+
+        // ----------------------------------------------------
+        // 戦闘コマンドウィンドウ
+        // ----------------------------------------------------
+
+        this.drawBattleMenu();
+    }
+
+    // --------------------------------------------------------
+    // 戦闘コマンド描画
+    // --------------------------------------------------------
+
+    drawBattleMenu(){
+
+        if(this.enemies.every(e=>e.hp<=0)){
+            return;
+        }
+
+        // 前作と同じコマンド名
+        const menu=[
+            ["攻撃","魔法"],
+            ["回復","防御"],
+            ["能力",""]
+        ];
+
+        // コマンドウィンドウ
+        ctx.fillStyle="rgba(0,0,0,.88)";
+
+        ctx.fillRect(
+            160,
+            210,
+            155,
+            75
+        );
+
+        ctx.strokeStyle="#fff";
+
+        ctx.strokeRect(
+            160,
+            210,
+            155,
+            75
+        );
+
+        ctx.fillStyle="#fff";
+        ctx.font="10px monospace";
+
+        // ----------------------------------------------------
+        // 2列3行のコマンドを描画
+        // ----------------------------------------------------
+
+        for(let row=0;row<3;row++){
+
+            for(let col=0;col<2;col++){
+
+                const text=menu[row][col];
+
+                if(text===""){
+                    continue;
+                }
+
+                const x=
+                    col===0
+                        ? 168
+                        : 238;
+
+                const y=
+                    225+row*18;
+
+                if(
+                    this.battleRow===row &&
+                    this.battleCol===col
+                ){
+
+                    ctx.fillText(
+                        "▶"+text,
+                        x,
+                        y
+                    );
+
+                }else{
+
+                    ctx.fillText(
+                        "　"+text,
+                        x,
+                        y
+                    );
+                }
+            }
+        }
+    }
+    // --------------------------------------------------------
+    // 戦闘メニュー
+    // --------------------------------------------------------
+
+    battleMenu(){
+
+        if(this.enemies.every(e=>e.hp<=0)){
+
+            this.battleVictory();
+
+            return;
+        }
+
+        this.hideMessage();
+    }
+
+    // --------------------------------------------------------
+    // Aボタン：決定
+    // --------------------------------------------------------
+
+    decide(){
+
+        // ----------------------------------------------------
+        // メッセージ表示中
+        // ----------------------------------------------------
+
+        if(this.messageActive){
+
+            // 次の場面へ進む処理がある場合
+            if(this.messageCallback){
+
+                const callback=this.messageCallback;
+
+                // コールバックを先に消す
+                this.messageCallback=null;
+
+                // メッセージを閉じる
+                this.hideMessage();
+
+                // 次の処理を実行
+                callback();
+
+            }else{
+
+                // コールバックがない場合
+                this.hideMessage();
+
+                // クレジットなどの処理
+                this.afterMessage();
+            }
+
+            return;
+        }
+
+        // ----------------------------------------------------
+        // クレジット
+        // ----------------------------------------------------
+
+        if(this.state==="credit"){
+
+            this.showTitle();
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // タイトル画面
+        // ----------------------------------------------------
+
+        if(this.state==="title"){
+
+            if(this.menuIndex===0){
+
+                // ゲームスタート
+                this.startGame();
+
+            }else if(this.menuIndex===1){
+
+                // クレジット
+                this.showCredit();
+            }
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // フィールド
+        // ----------------------------------------------------
+
+        if(this.state==="field"){
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // 戦闘
+        // ----------------------------------------------------
+
+        if(
+            this.state==="battle" ||
+            this.state==="finalBattle"
+        ){
+
+            this.selectBattleCommand();
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // 戦闘コマンド
+    // --------------------------------------------------------
+
+    selectBattleCommand(){
+
+        let command="";
+
+        if(
+            this.battleRow===0 &&
+            this.battleCol===0
+        ){
+
+            command="攻撃";
+
+        }else if(
+            this.battleRow===0 &&
+            this.battleCol===1
+        ){
+
+            command="魔法";
+
+        }else if(
+            this.battleRow===1 &&
+            this.battleCol===0
+        ){
+
+            command="回復";
+
+        }else if(
+            this.battleRow===1 &&
+            this.battleCol===1
+        ){
+
+            command="防御";
+
+        }else if(
+            this.battleRow===2 &&
+            this.battleCol===0
+        ){
+
+            command="能力";
+        }
+
+
+        if(command==="攻撃"){
+
+            this.playerAttack();
+
+        }else if(command==="魔法"){
+
+            this.playerMagic();
+
+        }else if(command==="回復"){
+
+            this.playerHeal();
+
+        }else if(command==="防御"){
+
+            this.playerGuard();
+
+        }else if(command==="能力"){
+
+            this.showAbility();
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // 通常攻撃
+    // --------------------------------------------------------
+
+    playerAttack(){
+
+        const target=
+            this.enemies.find(e=>e.hp>0);
+
+        if(!target) return;
+
+        let damage =
+            this.hero.attack*2 -
+            target.defense +
+            rand(0,5);
+
+        damage=Math.max(0,damage);
+
+        target.hp=Math.max(
+            0,
+            target.hp-damage
+        );
+
+        this.showMessage(
+            "勇者のこうげき！\n"+
+            target.name+
+            "に"+damage+
+            "ダメージ！",
+            ()=>{
+                this.afterPlayerAction();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 魔法攻撃
+    // --------------------------------------------------------
+
+    playerMagic(){
+
+        const results=[];
+
+        this.enemies.forEach(enemy=>{
+
+            if(enemy.hp<=0) return;
+
+            let damage =
+                this.hero.magic*2 -
+                enemy.magic +
+                rand(0,5);
+
+            damage=Math.max(0,damage);
+
+            enemy.hp=Math.max(
+                0,
+                enemy.hp-damage
+            );
+
+            results.push(
+                enemy.name+
+                "に"+damage+
+                "ダメージ！"
+            );
+        });
+
+        this.showMessage(
+            "勇者は魔法を唱えた！\n"+
+            results.join("\n"),
+            ()=>{
+                this.afterPlayerAction();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 回復
+    // --------------------------------------------------------
+
+    playerHeal(){
+
+        const value=rand(20,30);
+
+        this.hero.hp=
+            Math.min(
+                this.hero.maxHP,
+                this.hero.hp+value
+            );
+
+        this.hero.poison=0;
+
+        this.showMessage(
+            "勇者は"+value+
+            "回復した！\n"+
+            "毒が解除された。",
+            ()=>{
+                this.afterPlayerAction();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 防御
+    // --------------------------------------------------------
+
+    playerGuard(){
+
+        this.hero.guard=true;
+
+        this.showMessage(
+            "勇者は防御態勢に入った！\n"+
+            "次の被ダメージを半減する。",
+            ()=>{
+                this.afterPlayerAction();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 能力
+    // --------------------------------------------------------
+
+    showAbility(){
+
+        this.showMessage(
+            "【勇者の能力】\n"+
+            "レベル："+this.hero.level+"\n"+
+            "HP："+this.hero.hp+"/"+this.hero.maxHP+"\n"+
+            "こうげき："+this.hero.attack+"\n"+
+            "ぼうぎょ："+this.hero.defense+"\n"+
+            "すばやさ："+this.hero.speed+"\n"+
+            "まりょく："+this.hero.magic
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // プレイヤー行動終了
+    // --------------------------------------------------------
+
+    afterPlayerAction(){
+
+        if(this.enemies.every(e=>e.hp<=0)){
+
+            this.battleVictory();
+
+            return;
+        }
+
+        this.enemyTurn();
+    }
+
+
+    // --------------------------------------------------------
+    // 敵ターン
+    // --------------------------------------------------------
+
+    enemyTurn(){
+
+        const actions=[];
+
+        this.enemies.forEach(enemy=>{
+
+            if(enemy.hp<=0) return;
+
+            actions.push({
+                enemy:enemy,
+                action:enemy.nextAction()
+            });
+        });
+
+        // すばやさが高い順
+        actions.sort(
+            (a,b)=>
+                b.enemy.speed-a.enemy.speed
+        );
+
+        let index=0;
+
+        const nextEnemy=()=>{
+
+            if(index>=actions.length){
+
+                this.endEnemyTurn();
+
+                return;
+            }
+
+            const item=actions[index++];
+
+            if(item.enemy.hp<=0){
+
+                nextEnemy();
+                return;
+            }
+
+            this.executeEnemyAction(
+                item.enemy,
+                item.action,
+                nextEnemy
+            );
+        };
+
+        nextEnemy();
+    }
+
+
+    // --------------------------------------------------------
+    // 敵行動実行
+    // --------------------------------------------------------
+
+    executeEnemyAction(enemy,action,next){
+
+        let damage=0;
+        let text="";
+
+        if(action==="攻撃"){
+
+            damage =
+                enemy.attack +
+                rand(0,5) -
+                this.hero.defense;
+
+            damage=Math.max(0,damage);
+
+            text=
+                enemy.name+
+                "の攻撃！\n"+
+                damage+
+                "ダメージ！";
+        }
+
+
+        if(action==="強攻撃"){
+
+            damage =
+                enemy.attack*2 -
+                this.hero.defense +
+                rand(0,5);
+
+            damage=Math.max(0,damage);
+
+            if(enemy.charge){
+
+                damage+=10;
+                enemy.charge=false;
+            }
+
+            text=
+                enemy.name+
+                "の強攻撃！\n"+
+                damage+
+                "ダメージ！";
+        }
+
+
+        if(action==="毒"){
+
+            damage =
+                enemy.attack -
+                this.hero.defense +
+                rand(0,3);
+
+            damage=Math.max(0,damage);
+
+            this.hero.poison=3;
+
+            text=
+                enemy.name+
+                "の毒攻撃！\n"+
+                damage+
+                "ダメージ！\n"+
+                "勇者は毒を受けた！";
+        }
+
+
+        if(action==="待機"){
+
+            text=
+                enemy.name+
+                "は様子を見ている……。";
+        }
+
+
+        if(action==="チャージ"){
+
+            enemy.charge=true;
+
+            text=
+                enemy.name+
+                "は力を溜めている！";
+        }
+
+
+        if(action==="ブレス"){
+
+            damage =
+                enemy.magic*2 -
+                this.hero.defense +
+                rand(0,5);
+
+            damage=Math.max(0,damage);
+
+            if(enemy.charge){
+
+                damage+=10;
+                enemy.charge=false;
+            }
+
+            text=
+                enemy.name+
+                "のブレス！\n"+
+                damage+
+                "ダメージ！";
+        }
+
+
+        if(action==="詠唱"){
+
+            enemy.cast=true;
+
+            text=
+                enemy.name+
+                "は詠唱を始めた！";
+        }
+
+
+        if(action==="ファイア"){
+
+            damage =
+                enemy.magic*2 -
+                this.hero.defense +
+                rand(0,5);
+
+            damage=Math.max(0,damage);
+
+            if(enemy.cast){
+
+                damage+=10;
+                enemy.cast=false;
+            }
+
+            text=
+                enemy.name+
+                "のファイア！\n"+
+                damage+
+                "ダメージ！";
+        }
+
+
+        if(action==="回復"){
+
+            const heal=rand(10,20);
+
+            enemy.hp=
+                Math.min(
+                    enemy.maxHP,
+                    enemy.hp+heal
+                );
+
+            text=
+                enemy.name+
+                "はHPを"+
+                heal+
+                "回復した！";
+        }
+
+
+        if(action==="スタン"){
+
+            damage =
+                enemy.attack -
+                this.hero.defense +
+                rand(0,5);
+
+            damage=Math.max(0,damage);
+
+            text=
+                enemy.name+
+                "のスタン攻撃！\n"+
+                damage+
+                "ダメージ！";
+
+            if(Math.random()<.5){
+
+                if(!this.hero.guard){
+
+                    this.hero.stun=1;
+
+                    text+="\n勇者はスタンした！";
+
+                }else{
+
+                    text+="\n防御でスタンを防いだ！";
+                }
+            }
+        }
+
+
+        if(this.hero.guard){
+
+            damage=Math.floor(damage/2);
+
+            if(damage>0){
+                text+=
+                    "\n防御でダメージ半減！";
+            }
+        }
+
+        this.hero.hp-=damage;
+
+        if(this.hero.hp<0){
+            this.hero.hp=0;
+        }
+
+        // 毒
+        if(this.hero.poison>0){
+
+            const poisonDamage=rand(3,7);
+
+            this.hero.hp-=poisonDamage;
+
+            this.hero.poison--;
+
+            text+=
+                "\n毒で"+
+                poisonDamage+
+                "ダメージ！";
+        }
+
+        this.showMessage(
+            text,
+            ()=>{
+                if(this.hero.hp<=0){
+
+                    this.gameOver();
+
+                    return;
+                }
+
+                next();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 敵ターン終了
+    // --------------------------------------------------------
+
+    endEnemyTurn(){
+
+        this.hero.guard=false;
+
+        if(this.hero.stun>0){
+
+            this.hero.stun--;
+
+            this.showMessage(
+                "勇者はスタンして動けない！",
+                ()=>{
+                    this.enemyTurnEndToBattle();
+                }
+            );
+
+            return;
+        }
+
+        this.enemyTurnEndToBattle();
+    }
+
+
+    enemyTurnEndToBattle(){
+
+        if(this.hero.hp<=0){
+
+            this.gameOver();
+
+            return;
+        }
+
+        this.battleMenu();
+    }
+
+
+    // --------------------------------------------------------
+    // 戦闘勝利
+    // --------------------------------------------------------
+
+    battleVictory(){
+
+        let exp=0;
+
+        this.enemies.forEach(enemy=>{
+
+            exp+=enemy.exp;
+        });
+
+        // 経験値を獲得する前のレベル
+        const beforeLevel=this.hero.level;
+
+        // 経験値によるレベルアップ
+        this.hero.addExp(exp);
+
+        // 経験値によるレベルアップ後のレベル
+        const afterLevel=this.hero.level;
+
+        let levelMessage="";
+
+        if(afterLevel>beforeLevel){
+
+            levelMessage=
+                "\n勇者はレベル"+afterLevel+
+                "になった！";
+        }
+
+
+        // --------------------------------------------------------
+        // ゾンビ2体
+        // --------------------------------------------------------
+
+        if(this.enemies.some(
+            e=>e.name==="ゾンビ"
+        )){
+
+            this.story.caveZombieClear=true;
+
+            this.showMessage(
+                "ゾンビを倒した！\n"+
+                "経験値を"+exp+"獲得！"+
+                levelMessage+
+                "\n\n"+
+                "洞窟の奥から、強い魔力を感じる……。",
+                ()=>{
+
+                    this.startMageBattle();
+                }
+            );
+
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // 洞窟の魔術師
+        // --------------------------------------------------------
+
+        if(this.enemies.some(
+            e=>e.name==="洞窟の魔術師"
+        )){
+
+            this.story.mageClear=true;
+            this.story.barrierOpen=true;
+
+            this.showMessage(
+                "洞窟の魔術師を倒した！\n"+
+                "経験値を"+exp+"獲得！"+
+                levelMessage+
+                "\n\n"+
+                "魔王城の結界が解除された！",
+                ()=>{
+
+                    // 洞窟内で戦った位置を維持
+                    this.fieldX=this.battleReturnX;
+                    this.fieldY=this.battleReturnY;
+
+                    this.startField(false);
+                }
+            );
+
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // デュラハン
+        // --------------------------------------------------------
+
+        if(this.enemies.some(
+            e=>e.name==="デュラハン"
+        )){
+
+            this.showMessage(
+                "デュラハンを倒した！\n"+
+                "経験値を"+exp+"獲得！"+
+                levelMessage,
+                ()=>{
+
+                    this.startDragonBattle();
+                }
+            );
+
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // ドラゴン
+        // --------------------------------------------------------
+
+        if(this.enemies.some(
+            e=>e.name==="ドラゴン"
+        )){
+
+            this.showMessage(
+                "ドラゴンを倒した！\n"+
+                "経験値を"+exp+"獲得！"+
+                levelMessage+
+                "\n\n"+
+                "魔王が待っている……。",
+                ()=>{
+
+                    this.startFinalBattle();
+                }
+            );
+
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // 魔王
+        // --------------------------------------------------------
+
+        if(this.enemies.some(
+            e=>e.name==="魔王"
+        )){
+
+            this.story.gameClear=true;
+
+            this.showEnding();
+
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // 通常戦闘
+        // --------------------------------------------------------
+
+        this.showMessage(
+            "戦闘に勝利した！\n"+
+            "経験値を"+exp+"獲得！"+
+            levelMessage,
+            ()=>{
+
+                // 戦闘前のフィールド位置を復元
+                this.fieldX=this.battleReturnX;
+                this.fieldY=this.battleReturnY;
+
+                // 位置を初期化せずフィールドへ戻る
+                this.startField(false);
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // GAME OVER
+    // --------------------------------------------------------
+
+    gameOver(){
+
+        this.showMessage(
+            "勇者は力尽きた……。\n"+
+            "志半ばで倒れた。",
+            ()=>{
+                this.resetToTitle();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // エンディング
+    // --------------------------------------------------------
+
+    showEnding(){
+
+        this.state="ending";
+
+        this.showMessage(
+            "王様「勇者よ、よくぞ世界を救ってくれた！」\n\n"+
+            "無事に魔王を討伐した。\n"+
+            "世界に平和が戻った……。",
+            ()=>{
+                this.showCredit();
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // クレジット
+    // --------------------------------------------------------
+
+    showCredit(){
+
+        this.state="credit";
+
+        // メッセージウィンドウのクレジット表示を解除
+        this.hideMessage();
+    }
+
+
+    drawCredit(){
+
+        ctx.fillStyle="rgba(0,0,0,.65)";
+        ctx.fillRect(20,20,280,248);
+
+        ctx.fillStyle="#fff";
+        ctx.textAlign="center";
+
+        ctx.font="bold 22px monospace";
+        ctx.fillText("HERO-QUEST2",160,55);
+
+        ctx.font="14px monospace";
+
+        ctx.fillText("制作者",160,95);
+        ctx.fillText("Nakamura Yuta",160,120);
+
+        ctx.fillText("制作協力",160,160);
+        ctx.fillText("ChatGPT",160,185);
+        ctx.fillText("いらすとや",160,205);
+
+        ctx.font="11px monospace";
+        ctx.fillText("A / B：タイトルへ",160,245);
+
+        ctx.textAlign="left";
+    }
+
+
+    // --------------------------------------------------------
+    // 初期状態へ戻す
+    // --------------------------------------------------------
+
+    resetToTitle(){
+
+        this.hero=new Hero();
+
+        this.story={
+            caveZombieClear:false,
+            mageClear:false,
+            barrierOpen:false,
+            gameClear:false
+        };
+
+        this.enemies=[];
+
+        this.showTitle();
+    }
+
+// --------------------------------------------------------
+// Xボタン：勇者の能力ウィンドウ
+// --------------------------------------------------------
+
+toggleAbilityWindow(){
+
+    if(this.utilityWindowType==="ability"){
+
+        this.closeUtilityWindow();
+
+        return;
+    }
+
+    this.openUtilityWindow("ability");
+}
+
+
+// --------------------------------------------------------
+// Yボタン：操作マニュアル
+// --------------------------------------------------------
+
+toggleManualWindow(){
+
+    if(this.utilityWindowType==="manual"){
+
+        this.closeUtilityWindow();
+
+        return;
+    }
+
+    this.openUtilityWindow("manual");
+}
+
+
+// --------------------------------------------------------
+// X/Yウィンドウを開く
+// --------------------------------------------------------
+
+openUtilityWindow(type){
+
+    this.utilityWindowType=type;
+
+    if(type==="ability"){
+
+        utilityTitle.textContent="勇者の能力";
+
+        utilityText.textContent=
+            "レベル："+this.hero.level+"\n"+
+            "HP："+this.hero.hp+
+            " / "+this.hero.maxHP+"\n"+
+            "こうげき："+this.hero.attack+"\n"+
+            "ぼうぎょ："+this.hero.defense+"\n"+
+            "すばやさ："+this.hero.speed+"\n"+
+            "まりょく："+this.hero.magic+"\n"+
+            "経験値："+this.hero.exp;
+
+    }else if(type==="manual"){
+
+        utilityTitle.textContent="操作マニュアル";
+
+        utilityText.textContent=
+            "十字キー\n"+
+            "　▲：上へ移動・カーソル上\n"+
+            "　▼：下へ移動・カーソル下\n"+
+            "　◀：左へ移動・カーソル左\n"+
+            "　▶：右へ移動・カーソル右\n\n"+
+            "Aボタン：決定・メッセージを進める\n"+
+            "Bボタン：戻る・メニューを閉じる\n"+
+            "Xボタン：勇者の能力を表示\n"+
+            "Yボタン：この操作マニュアルを表示\n\n"+
+            "PC操作\n"+
+            "　矢印キー：十字キー\n"+
+            "　Enter / Z：Aボタン\n"+
+            "　Esc：Bボタン\n"+
+            "　X：能力　Y：マニュアル";
+    }
+
+    utilityWindow.classList.remove("hidden");
+}
+
+
+// --------------------------------------------------------
+// X/Yウィンドウを閉じる
+// --------------------------------------------------------
+
+closeUtilityWindow(){
+
+    this.utilityWindowType=null;
+
+    utilityWindow.classList.add("hidden");
+}
+
+    // --------------------------------------------------------
+    // メッセージ表示
+    // --------------------------------------------------------
+
+    showMessage(text,callback=null){
+
+        this.messageActive=true;
+
+        messageText.textContent=text;
+
+        messageBox.classList.remove("hidden");
+
+        this.messageCallback=callback;
+    }
+
+
+    hideMessage(){
+
+        this.messageActive=false;
+
+        messageBox.classList.add("hidden");
+
+        messageText.textContent="";
+
+        this.messageCallback=null;
+    }
+
+
+    // --------------------------------------------------------
+    // メッセージ後処理
+    // --------------------------------------------------------
+
+    afterMessage(){
+
+        if(this.state==="field"){
+            return;
+        }
+
+        if(this.state==="credit"){
+            this.showTitle();
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // Bボタン
+    // --------------------------------------------------------
+
+    cancel(){
+
+        // ----------------------------------------------------
+        // メッセージ表示中
+        // ----------------------------------------------------
+
+        if(this.messageActive){
+
+            this.hideMessage();
+
+            // クレジット画面ならタイトルへ戻る
+            if(this.state==="credit"){
+
+                this.showTitle();
+            }
+
+            return;
+        }
+
+        // ----------------------------------------------------
+        // クレジット
+        // ----------------------------------------------------
+
+        if(this.state==="credit"){
+
+            this.showTitle();
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // タイトル画面
+        // ----------------------------------------------------
+
+        if(this.state==="title"){
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // フィールド
+        // ----------------------------------------------------
+
+        if(this.state==="field"){
+
+            this.showFieldMenu();
+
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // 戦闘
+        // ----------------------------------------------------
+
+        if(
+            this.state==="battle" ||
+            this.state==="finalBattle"
+        ){
+
+            this.battleRow=0;
+            this.battleCol=0;
+
+            this.battleMenu();
+
+            return;
+        }
+    }
+
+    // --------------------------------------------------------
+    // フィールドメニュー
+    // --------------------------------------------------------
+
+    showFieldMenu(){
+
+        this.showMessage(
+            "【メニュー】\n\n"+
+            "A：閉じる\n"+
+            "B：閉じる\n\n"+
+            "LV："+this.hero.level+"\n"+
+            "HP："+this.hero.hp+"/"+this.hero.maxHP+"\n"+
+            "こうげき："+this.hero.attack+"\n"+
+            "ぼうぎょ："+this.hero.defense+"\n"+
+            "すばやさ："+this.hero.speed+"\n"+
+            "まりょく："+this.hero.magic
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // 十字キー
+    // --------------------------------------------------------
+
+    input(direction){
+
+        // メッセージ中は上下で文章を進めない
+        if(this.messageActive){
+
+            if(direction==="up" ||
+               direction==="down"){
+                return;
+            }
+
+            return;
+        }
+
+        // タイトル
+        if(this.state==="title"){
+
+            if(direction==="up"){
+                this.menuIndex--;
+            }
+
+            if(direction==="down"){
+                this.menuIndex++;
+            }
+
+            this.menuIndex=
+                clamp(this.menuIndex,0,1);
+
+            return;
+        }
+
+        // フィールド
+        if(this.state==="field"){
+
+            if(direction==="up"){
+                this.move(0,-1);
+            }
+
+            if(direction==="down"){
+                this.move(0,1);
+            }
+
+            if(direction==="left"){
+                this.move(-1,0);
+            }
+
+            if(direction==="right"){
+                this.move(1,0);
+            }
+
+            return;
+        }
+
+        // 戦闘
+        if(
+            this.state==="battle" ||
+            this.state==="finalBattle"
+        ){
+
+            // 上
+            if(direction==="up"){
+
+                this.battleRow--;
+
+                if(this.battleRow<0){
+
+                    this.battleRow=2;
+                }
+
+                // 「能力」から上へ移動した場合
+                // 右列には3行目のコマンドがないため左列へ
+                if(
+                    this.battleRow===2 &&
+                    this.battleCol===1
+                ){
+
+                    this.battleCol=0;
+                }
+            }
+
+
+            // 下
+            if(direction==="down"){
+
+                this.battleRow++;
+
+                if(this.battleRow>2){
+
+                    this.battleRow=0;
+                }
+
+                // 右下に存在するコマンドはない
+                if(
+                    this.battleRow===2 &&
+                    this.battleCol===1
+                ){
+
+                    this.battleCol=0;
+                }
+            }
+
+
+            // 左
+            if(direction==="left"){
+
+                this.battleCol--;
+
+                if(this.battleCol<0){
+
+                    this.battleCol=1;
+                }
+
+                // 「能力」の右側には何もない
+                if(
+                    this.battleRow===2 &&
+                    this.battleCol===1
+                ){
+
+                    this.battleCol=0;
+                }
+            }
+
+
+            // 右
+            if(direction==="right"){
+
+                this.battleCol++;
+
+                if(this.battleCol>1){
+
+                    this.battleCol=0;
+                }
+
+                // 「能力」の右側には何もない
+                if(
+                    this.battleRow===2 &&
+                    this.battleCol===1
+                ){
+
+                    this.battleCol=0;
+                }
+            }
+
+
+            this.battleMenu();
+        }
+    }
+}
+
+
+// ============================================================
+// 入力
+// ============================================================
+
+const game=new Game();
+
+
+// ------------------------------------------------------------
+// 十字キー
+// ------------------------------------------------------------
+
+document.getElementById("up")
+    .addEventListener("click",()=>{
+        game.input("up");
+    });
+
+document.getElementById("down")
+    .addEventListener("click",()=>{
+        game.input("down");
+    });
+
+document.getElementById("left")
+    .addEventListener("click",()=>{
+        game.input("left");
+    });
+
+document.getElementById("right")
+    .addEventListener("click",()=>{
+        game.input("right");
+    });
+
+// ------------------------------------------------------------
+// Xボタン：勇者の能力
+// ------------------------------------------------------------
+
+document.getElementById("buttonX")
+    .addEventListener("click",()=>{
+        game.toggleAbilityWindow();
+    });
+
+
+// ------------------------------------------------------------
+// Yボタン：操作マニュアル
+// ------------------------------------------------------------
+
+document.getElementById("buttonY")
+    .addEventListener("click",()=>{
+        game.toggleManualWindow();
+    });
+
+// ------------------------------------------------------------
+// Aボタン
+// ------------------------------------------------------------
+
+document.getElementById("buttonA")
+    .addEventListener("click",()=>{
+        game.decide();
+    });
+
+
+// ------------------------------------------------------------
+// Bボタン
+// ------------------------------------------------------------
+
+document.getElementById("buttonB")
+    .addEventListener("click",()=>{
+        game.cancel();
+    });
+
+
+// ------------------------------------------------------------
+// PCキーボード対応
+// ------------------------------------------------------------
+
+document.addEventListener("keydown",e=>{
+
+    if(e.repeat) return;
+
+
+    // --------------------------------------------------------
+    // 十字キー：上
+    // --------------------------------------------------------
+
+    if(
+        e.key==="ArrowUp" ||
+        e.key.toLowerCase()==="w"
+    ){
+
+        e.preventDefault();
+        game.input("up");
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // 十字キー：下
+    // --------------------------------------------------------
+
+    if(
+        e.key==="ArrowDown" ||
+        e.key.toLowerCase()==="s"
+    ){
+
+        e.preventDefault();
+        game.input("down");
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // 十字キー：左
+    // --------------------------------------------------------
+
+    if(
+        e.key==="ArrowLeft" ||
+        e.key.toLowerCase()==="a"
+    ){
+
+        e.preventDefault();
+        game.input("left");
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // 十字キー：右
+    // --------------------------------------------------------
+
+    if(
+        e.key==="ArrowRight" ||
+        e.key.toLowerCase()==="d"
+    ){
+
+        e.preventDefault();
+        game.input("right");
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // Enter / Z：Aボタン
+    // --------------------------------------------------------
+
+    if(
+        e.key==="Enter" ||
+        e.key.toLowerCase()==="z"
+    ){
+
+        e.preventDefault();
+        game.decide();
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // X：勇者の能力
+    // --------------------------------------------------------
+
+    if(e.key.toLowerCase()==="x"){
+
+        e.preventDefault();
+        game.toggleAbilityWindow();
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // Y：操作マニュアル
+    // --------------------------------------------------------
+
+    if(e.key.toLowerCase()==="y"){
+
+        e.preventDefault();
+        game.toggleManualWindow();
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // Escape：Bボタン
+    // --------------------------------------------------------
+
+    if(e.key==="Escape"){
+
+        e.preventDefault();
+        game.cancel();
+        return;
+    }
+
+});
+
+// ------------------------------------------------------------
+// タッチ操作時の長押し防止
+// ------------------------------------------------------------
+
+document.addEventListener(
+    "contextmenu",
+    e=>e.preventDefault()
+);
+
+</script>
+</body>
+</html>
