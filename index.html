@@ -1820,6 +1820,25 @@ class Game{
 
     selectBattleCommand(){
 
+        // ----------------------------------------------------
+        // スタン中は勇者の行動をスキップ
+        // ----------------------------------------------------
+
+        if(this.hero.stun>0){
+
+            this.hero.stun--;
+
+            this.showMessage(
+                "勇者はスタンして動けない！",
+                ()=>{
+                    this.enemyTurn();
+                }
+            );
+
+            return;
+        }
+
+
         let command="";
 
         if(
@@ -1893,23 +1912,34 @@ class Game{
 
         if(!target) return;
 
-        let damage =
-            this.hero.attack*2 -
-            target.defense +
-            rand(0,5);
+        let damage=
+            this.hero.attack*2-
+            target.defense+
+            rand(1,5);
 
         damage=Math.max(0,damage);
+
+        let text=
+            "勇者のこうげき！\n"+
+            target.name+"に";
+
+        // 10％の確率でクリティカル
+        if(Math.random()<0.1){
+
+            damage+=10;
+
+            text+="クリティカル！\n";
+        }
 
         target.hp=Math.max(
             0,
             target.hp-damage
         );
 
+        text+=damage+"ダメージ！";
+
         this.showMessage(
-            "勇者のこうげき！\n"+
-            target.name+
-            "に"+damage+
-            "ダメージ！",
+            text,
             ()=>{
                 this.afterPlayerAction();
             }
@@ -1929,23 +1959,31 @@ class Game{
 
             if(enemy.hp<=0) return;
 
-            let damage =
-                this.hero.magic*2 -
-                enemy.magic +
-                rand(0,5);
+            let damage=
+                this.hero.magic*2-
+                enemy.magic+
+                rand(1,5);
 
             damage=Math.max(0,damage);
+
+            let text=enemy.name+"に";
+
+            // 10％の確率でクリティカル
+            if(Math.random()<0.1){
+
+                damage+=10;
+
+                text+="クリティカル！\n";
+            }
 
             enemy.hp=Math.max(
                 0,
                 enemy.hp-damage
             );
 
-            results.push(
-                enemy.name+
-                "に"+damage+
-                "ダメージ！"
-            );
+            text+=damage+"ダメージ！";
+
+            results.push(text);
         });
 
         this.showMessage(
@@ -1964,19 +2002,25 @@ class Game{
 
     playerHeal(){
 
-        const value=rand(20,30);
+        const value=
+            this.hero.magic*2+
+            rand(1,5);
 
-        this.hero.hp=
-            Math.min(
-                this.hero.maxHP,
-                this.hero.hp+value
-            );
+        const beforeHP=this.hero.hp;
+
+        this.hero.hp=Math.min(
+            this.hero.maxHP,
+            this.hero.hp+value
+        );
+
+        const actualHeal=
+            this.hero.hp-beforeHP;
 
         this.hero.poison=0;
 
         this.showMessage(
-            "勇者は"+value+
-            "回復した！\n"+
+            "勇者は"+actualHeal+
+            "HP回復した！\n"+
             "毒が解除された。",
             ()=>{
                 this.afterPlayerAction();
@@ -1995,7 +2039,8 @@ class Game{
 
         this.showMessage(
             "勇者は防御態勢に入った！\n"+
-            "次の被ダメージを半減する。",
+            "このターンに受けるダメージを半減し、"+
+            "スタンを防ぐ！",
             ()=>{
                 this.afterPlayerAction();
             }
@@ -2101,65 +2146,102 @@ class Game{
         let damage=0;
         let text="";
 
+
+        // ----------------------------------------------------
+        // 通常攻撃
+        // こうげき×2 - 勇者のぼうぎょ + 1～5
+        // 10％で追加10ダメージ
+        // ----------------------------------------------------
+
         if(action==="攻撃"){
 
-            damage =
-                enemy.attack +
-                rand(0,5) -
-                this.hero.defense;
+            damage=
+                enemy.attack*2-
+                this.hero.defense+
+                rand(1,5);
 
             damage=Math.max(0,damage);
 
-            text=
-                enemy.name+
-                "の攻撃！\n"+
-                damage+
-                "ダメージ！";
+            text=enemy.name+"の攻撃！\n";
+
+            if(Math.random()<0.1){
+
+                damage+=10;
+
+                text+="クリティカル！\n";
+            }
+
+            if(enemy.charge){
+                damage += 20;
+                enemy.charge = false;
+                text += "チャージ効果！\n";
+            }
+
+            text+=damage+"ダメージ！";
         }
 
+
+        // ----------------------------------------------------
+        // 強攻撃
+        // こうげき×3 - 勇者のぼうぎょ + 1～5
+        // 20％で追加20ダメージ
+        // ----------------------------------------------------
 
         if(action==="強攻撃"){
 
-            damage =
-                enemy.attack*2 -
-                this.hero.defense +
-                rand(0,5);
+            damage=
+                enemy.attack*3-
+                this.hero.defense+
+                rand(1,5);
 
             damage=Math.max(0,damage);
 
-            if(enemy.charge){
+            text=enemy.name+"の強攻撃！\n";
 
-                damage+=10;
-                enemy.charge=false;
+            if(Math.random()<0.2){
+
+                damage+=20;
+
+                text+="クリティカル！\n";
             }
 
-            text=
-                enemy.name+
-                "の強攻撃！\n"+
-                damage+
-                "ダメージ！";
+            if(enemy.charge){
+                damage += 20;
+                enemy.charge = false;
+                text += "チャージ効果！\n";
+            }
+
+            text+=damage+"ダメージ！";
         }
 
+
+        // ----------------------------------------------------
+        // 毒攻撃
+        // こうげき×2 - 勇者のぼうぎょ + 1～5
+        // 毒は2ターン継続
+        // ----------------------------------------------------
 
         if(action==="毒"){
 
-            damage =
-                enemy.attack -
-                this.hero.defense +
-                rand(0,3);
+            damage=
+                enemy.attack*2-
+                this.hero.defense+
+                rand(1,5);
 
             damage=Math.max(0,damage);
 
-            this.hero.poison=3;
+            this.hero.poison=2;
 
             text=
-                enemy.name+
-                "の毒攻撃！\n"+
-                damage+
-                "ダメージ！\n"+
+                enemy.name+"の毒攻撃！\n"+
+                damage+"ダメージ！\n"+
                 "勇者は毒を受けた！";
         }
 
+
+        // ----------------------------------------------------
+        // 待機
+        // ----------------------------------------------------
 
         if(action==="待機"){
 
@@ -2168,6 +2250,10 @@ class Game{
                 "は様子を見ている……。";
         }
 
+
+        // ----------------------------------------------------
+        // チャージ
+        // ----------------------------------------------------
 
         if(action==="チャージ"){
 
@@ -2179,28 +2265,35 @@ class Game{
         }
 
 
+        // ----------------------------------------------------
+        // ブレス
+        // まりょく×2 - 勇者のまりょく + 5～10
+        // ----------------------------------------------------
+
         if(action==="ブレス"){
 
-            damage =
-                enemy.magic*2 -
-                this.hero.defense +
-                rand(0,5);
+            damage=
+                enemy.magic*2-
+                this.hero.magic+
+                rand(5,10);
 
             damage=Math.max(0,damage);
 
             if(enemy.charge){
-
-                damage+=10;
-                enemy.charge=false;
+                damage += 20;
+                enemy.charge = false;
+                text += "チャージ効果！\n";
             }
 
             text=
-                enemy.name+
-                "のブレス！\n"+
-                damage+
-                "ダメージ！";
+                enemy.name+"のブレス！\n"+
+                damage+"ダメージ！";
         }
 
+
+        // ----------------------------------------------------
+        // 詠唱
+        // ----------------------------------------------------
 
         if(action==="詠唱"){
 
@@ -2212,112 +2305,145 @@ class Game{
         }
 
 
+        // ----------------------------------------------------
+        // ファイア
+        // まりょく×2 - 勇者のまりょく + 1～5
+        // 10％で追加10ダメージ
+        // ----------------------------------------------------
+
         if(action==="ファイア"){
 
-            damage =
-                enemy.magic*2 -
-                this.hero.defense +
-                rand(0,5);
+            damage=
+                enemy.magic*2-
+                this.hero.magic+
+                rand(1,5);
 
             damage=Math.max(0,damage);
 
-            if(enemy.cast){
+            text=enemy.name+"のファイア！\n";
+
+            if(Math.random()<0.1){
 
                 damage+=10;
-                enemy.cast=false;
+
+                text+="クリティカル！\n";
             }
 
-            text=
-                enemy.name+
-                "のファイア！\n"+
-                damage+
-                "ダメージ！";
+            if(enemy.cast){
+                damage += 20;
+                enemy.cast = false;
+                text += "詠唱効果！\n";
+            }
+
+            text+=damage+"ダメージ！";
         }
 
 
+        // ----------------------------------------------------
+        // 回復
+        // まりょく×2 + 1～5 HP回復
+        // ----------------------------------------------------
+
         if(action==="回復"){
 
-            const heal=rand(10,20);
+            const heal=
+                enemy.magic*2+
+                rand(1,5);
 
-            enemy.hp=
-                Math.min(
-                    enemy.maxHP,
-                    enemy.hp+heal
-                );
+            const beforeHP=enemy.hp;
+
+            enemy.hp=Math.min(
+                enemy.maxHP,
+                enemy.hp+heal
+            );
+
+            const actualHeal=
+                enemy.hp-beforeHP;
 
             text=
-                enemy.name+
-                "はHPを"+
-                heal+
+                enemy.name+"はHPを"+
+                actualHeal+
                 "回復した！";
         }
 
 
+        // ----------------------------------------------------
+        // スタン
+        // まりょく×2 - 勇者のまりょく
+        // 2ターン行動不能
+        // 防御中ならスタンを防ぐ
+        // ----------------------------------------------------
+
         if(action==="スタン"){
 
-            damage =
-                enemy.attack -
-                this.hero.defense +
-                rand(0,5);
+            damage=Math.max(
+                0,
+                enemy.magic*2-
+                this.hero.magic
+            );
 
-            damage=Math.max(0,damage);
+            text=enemy.name+"のスタン攻撃！\n";
 
-            text=
-                enemy.name+
-                "のスタン攻撃！\n"+
-                damage+
-                "ダメージ！";
+            if(this.hero.guard){
 
-            if(Math.random()<.5){
+                text+="防御でスタンを防いだ！";
 
-                if(!this.hero.guard){
+            }else{
 
-                    this.hero.stun=1;
+                this.hero.stun=2;
 
-                    text+="\n勇者はスタンした！";
+                text+="勇者はスタンした！";
+            }
 
-                }else{
+            if(damage>0){
 
-                    text+="\n防御でスタンを防いだ！";
-                }
+                text+="\n"+damage+"ダメージ！";
             }
         }
 
 
-        if(this.hero.guard){
+        // ----------------------------------------------------
+        // 防御中のダメージ半減
+        // ----------------------------------------------------
+
+        if(this.hero.guard && damage>0){
 
             damage=Math.floor(damage/2);
 
-            if(damage>0){
-                text+=
-                    "\n防御でダメージ半減！";
+            // ダメージ表示を実際の値に合わせる
+            if(
+                action==="攻撃" ||
+                action==="強攻撃" ||
+                action==="毒" ||
+                action==="ブレス" ||
+                action==="ファイア" ||
+                action==="スタン"
+            ){
+
+                text=text.replace(
+                    /\d+ダメージ！/,
+                    damage+"ダメージ！"
+                );
             }
+
+            text+="\n防御でダメージ半減！";
         }
 
-        this.hero.hp-=damage;
 
-        if(this.hero.hp<0){
-            this.hero.hp=0;
-        }
+        // ----------------------------------------------------
+        // 勇者のHPへ反映
+        // ----------------------------------------------------
 
-        // 毒
-        if(this.hero.poison>0){
+        this.hero.hp=Math.max(
+            0,
+            this.hero.hp-damage
+        );
 
-            const poisonDamage=rand(3,7);
-
-            this.hero.hp-=poisonDamage;
-
-            this.hero.poison--;
-
-            text+=
-                "\n毒で"+
-                poisonDamage+
-                "ダメージ！";
-        }
 
         this.showMessage(
             text,
             ()=>{
+
                 if(this.hero.hp<=0){
 
                     this.gameOver();
@@ -2337,15 +2463,47 @@ class Game{
 
     endEnemyTurn(){
 
-        this.hero.guard=false;
+        // ----------------------------------------------------
+        // 毒ダメージ
+        // ----------------------------------------------------
 
-        if(this.hero.stun>0){
+        if(this.hero.poison>0){
 
-            this.hero.stun--;
+            let poisonDamage=rand(5,10);
+
+            // 防御中は毒ダメージも半減
+            if(this.hero.guard){
+
+                poisonDamage=Math.floor(
+                    poisonDamage/2
+                );
+            }
+
+            this.hero.hp=Math.max(
+                0,
+                this.hero.hp-poisonDamage
+            );
+
+            this.hero.poison--;
+
+            const poisonMessage=
+                "毒で"+poisonDamage+
+                "ダメージ！";
+
+            // 防御状態は敵ターン終了で解除
+            this.hero.guard=false;
 
             this.showMessage(
-                "勇者はスタンして動けない！",
+                poisonMessage,
                 ()=>{
+
+                    if(this.hero.hp<=0){
+
+                        this.gameOver();
+
+                        return;
+                    }
+
                     this.enemyTurnEndToBattle();
                 }
             );
@@ -2353,20 +2511,14 @@ class Game{
             return;
         }
 
+
+        // ----------------------------------------------------
+        // 防御状態を解除
+        // ----------------------------------------------------
+
+        this.hero.guard=false;
+
         this.enemyTurnEndToBattle();
-    }
-
-
-    enemyTurnEndToBattle(){
-
-        if(this.hero.hp<=0){
-
-            this.gameOver();
-
-            return;
-        }
-
-        this.battleMenu();
     }
 
 
