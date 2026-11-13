@@ -182,12 +182,13 @@ button:active{
     background:#999;
 }
 
+
 #utilityWindow{
     position:absolute;
     left:7%;
     right:7%;
-    top:12%;
-    bottom:12%;
+    top:8%;
+    bottom:8%;
     padding:14px;
     background:rgba(0,0,0,.94);
     border:4px solid #fff;
@@ -196,6 +197,11 @@ button:active{
     z-index:10;
     font-size:14px;
     line-height:1.65;
+
+    /* 内部を縦方向のレイアウトにする */
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
 }
 
 #utilityWindow.hidden{
@@ -203,6 +209,7 @@ button:active{
 }
 
 #utilityTitle{
+    flex-shrink:0;
     padding-bottom:8px;
     margin-bottom:8px;
     border-bottom:2px solid #fff;
@@ -212,17 +219,23 @@ button:active{
 }
 
 #utilityText{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
     white-space:pre-wrap;
+    padding-bottom:8px;
 }
 
 #utilityHint{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:8px;
+    position:static;
+    flex-shrink:0;
+    margin-top:6px;
+    padding-top:5px;
+    border-top:1px solid #777;
     text-align:center;
     font-size:10px;
 }
+
 #debug{
     margin-top:8px;
     font-size:11px;
@@ -724,6 +737,172 @@ function createEnemy(type,x=0,y=0){
 // GAME
 // ============================================================
 
+// ============================================================
+// BGM・効果音管理
+// ============================================================
+
+const AudioManager = {
+
+    bgmEnabled:true,
+    sfxEnabled:true,
+    unlocked:false,
+    currentBgm:null,
+
+    tracks:{
+        field:"魔王魂 ループ  8bit02.mp3",
+        battle:"魔王魂 ループ  8bit05.mp3",
+        finalBattle:"魔王魂 ループ  8bit07.mp3"
+    },
+
+    sfx:{
+        decision:"maou_se_system37.mp3",
+        menu:"maou_se_system05.mp3"
+    },
+
+    bgm:new Audio(),
+
+    unlock(){
+
+        if(this.unlocked) return;
+
+        this.unlocked=true;
+
+        this.bgm.loop=true;
+
+        this.updateForState(
+            game ? game.state : "title"
+        );
+    },
+
+
+    playBgm(key){
+
+        if(
+            !this.bgmEnabled ||
+            !this.unlocked ||
+            !this.tracks[key]
+        ){
+
+            this.stopBgm();
+            return;
+        }
+
+        if(
+            this.currentBgm===key &&
+            !this.bgm.paused
+        ){
+
+            return;
+        }
+
+        this.currentBgm=key;
+
+        this.bgm.src=this.tracks[key];
+        this.bgm.loop=true;
+
+        this.bgm.onerror=()=>{
+
+            console.error(
+                "BGM読み込みエラー:",
+                this.bgm.src
+            );
+        };
+
+        const promise=this.bgm.play();
+
+        if(promise && promise.catch){
+
+            promise.catch(error=>{
+
+                console.error(
+                    "BGM再生エラー:",
+                    error
+                );
+            });
+        }
+    },
+
+    stopBgm(){
+
+        this.bgm.pause();
+
+        this.currentBgm=null;
+    },
+
+    updateForState(state){
+
+        if(!this.bgmEnabled){
+
+            this.stopBgm();
+            return;
+        }
+
+        if(state==="field"){
+
+            this.playBgm("field");
+
+        }else if(state==="finalBattle"){
+
+            this.playBgm("finalBattle");
+
+        }else if(state==="battle"){
+
+            this.playBgm("battle");
+
+        }else{
+
+            this.stopBgm();
+        }
+    },
+
+    playSfx(src){
+
+        if(
+            !this.sfxEnabled ||
+            !this.unlocked
+        ){
+
+            return;
+        }
+
+        const sound=new Audio(src);
+
+        sound.volume=0.8;
+
+        const promise=sound.play();
+
+        if(promise && promise.catch){
+
+            promise.catch(()=>{});
+        }
+    },
+
+    playDecision(){
+
+        this.playSfx(this.sfx.decision);
+    },
+
+    playMenu(){
+
+        this.playSfx(this.sfx.menu);
+    },
+
+};
+
+
+// ブラウザーの音声再生制限を解除
+window.addEventListener(
+    "pointerdown",
+    ()=>AudioManager.unlock(),
+    {once:true}
+);
+
+window.addEventListener(
+    "keydown",
+    ()=>AudioManager.unlock(),
+    {once:true}
+);
+
 class Game{
 
     constructor(){
@@ -1095,6 +1274,8 @@ class Game{
 
     startGame(){
 
+        AudioManager.unlock();
+
         this.hero=new Hero();
 
         this.story={
@@ -1147,6 +1328,9 @@ class Game{
     startField(resetPosition=true){
 
         this.state="field";
+
+        // フィールドBGMに切り替える
+        AudioManager.updateForState(this.state);
 
         // 最初にフィールドへ入る時だけ初期位置へ戻す
         if(resetPosition){
@@ -1249,6 +1433,7 @@ class Game{
         if(this.story.mageClear){
 
             this.showMessage(
+                "王様「勇者よ、世界を救ってくれ！」\n\n"+
                 "騎士「勇者様、どうか世界をお救い下さい！」",
                 ()=>{
                     this.startField();
@@ -1461,6 +1646,9 @@ class Game{
 
 
         this.state=state;
+
+        // 状況に応じてBGMを切り替える
+        AudioManager.updateForState(this.state);
 
         this.enemies=enemies;
 
@@ -2657,6 +2845,7 @@ class Game{
         }
 
 
+
         // --------------------------------------------------------
         // 魔王
         // --------------------------------------------------------
@@ -2667,6 +2856,13 @@ class Game{
 
             this.story.gameClear=true;
 
+            // 魔王戦BGMを停止
+            AudioManager.stopBgm();
+
+            // フィールドBGMに切り替える
+            AudioManager.playBgm("field");
+
+            // エンディングへ
             this.showEnding();
 
             return;
@@ -2714,6 +2910,7 @@ class Game{
     // エンディング
     // --------------------------------------------------------
 
+
     showEnding(){
 
         this.state="ending";
@@ -2723,6 +2920,11 @@ class Game{
             "無事に魔王を討伐した。\n"+
             "世界に平和が戻った……。",
             ()=>{
+
+                // クレジット表示前にフィールドBGMを停止
+                AudioManager.stopBgm();
+
+                // クレジットへ移行
                 this.showCredit();
             }
         );
@@ -2762,6 +2964,8 @@ class Game{
         ctx.fillText("ChatGPT",160,185);
         ctx.fillText("いらすとや",160,205);
 
+        ctx.fillText("音楽：魔王魂",160,225);
+
         ctx.font="11px monospace";
         ctx.fillText("A / B：タイトルへ",160,245);
 
@@ -2795,6 +2999,8 @@ class Game{
 
 toggleAbilityWindow(){
 
+    AudioManager.playMenu();
+
     if(this.utilityWindowType==="ability"){
 
         this.closeUtilityWindow();
@@ -2811,6 +3017,8 @@ toggleAbilityWindow(){
 // --------------------------------------------------------
 
 toggleManualWindow(){
+
+    AudioManager.playMenu();
 
     if(this.utilityWindowType==="manual"){
 
@@ -3229,6 +3437,7 @@ document.getElementById("buttonY")
 
 document.getElementById("buttonA")
     .addEventListener("click",()=>{
+        AudioManager.playDecision();
         game.decide();
     });
 
@@ -3322,6 +3531,7 @@ document.addEventListener("keydown",e=>{
     ){
 
         e.preventDefault();
+        AudioManager.playDecision();
         game.decide();
         return;
     }
